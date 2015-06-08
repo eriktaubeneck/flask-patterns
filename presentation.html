@@ -1,0 +1,1016 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>Flask Hacks and Best Practices</title>
+  <style type="text/css">
+    body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #222;
+  background-color: #f7f7f7;
+  font-size: 100%;
+}
+
+.slide {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0; right: 0;
+}
+
+.slide-content {
+  width: 800px;
+  height: 600px;
+  overflow: hidden;
+  margin: 80px auto 0 auto;
+  padding: 30px;
+
+  font-weight: 200;
+  font-size: 200%;
+  line-height: 1.375;
+}
+
+.controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+}
+
+.arrow {
+  width: 0; height: 0;
+  border: 30px solid #333;
+  float: left;
+  margin-right: 30px;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.prev {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+
+  border-left-width: 0;
+  border-right-width: 50px;
+}
+
+.next {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+
+  border-left-width: 50px;
+  border-right-width: 0;
+}
+
+.prev:hover {
+  border-right-color: #888;
+  cursor: pointer;
+}
+
+.next:hover {
+  border-left-color: #888;
+  cursor: pointer;
+}
+
+h1 {
+  font-size: 300%;
+  line-height: 1.2;
+  text-align: center;
+  margin: 170px 0 0;
+}
+
+h2 {
+  font-size: 100%;
+  line-height: 1.2;
+  margin: 5px 0;
+  text-align: center;
+  font-weight: 200;
+}
+
+h3 {
+  font-size: 140%;
+  line-height: 1.2;
+  border-bottom: 1px solid #aaa;
+  margin: 0;
+  padding-bottom: 15px;
+}
+
+ul {
+  padding: 20px 0 0 60px;
+  font-weight: 200;
+  line-height: 1.375;
+}
+
+.author h1 {
+  font-size: 170%;
+  font-weight: 200;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.author h3 {
+  font-weight: 100;
+  text-align: center;
+  font-size: 95%;
+  border: none;
+}
+
+a {
+  text-decoration: none;
+  color: #44a4dd;
+}
+
+a:hover {
+  color: #66b5ff;
+}
+
+pre {
+  font-size: 60%;
+  line-height: 1.3;
+}
+
+.progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 3px;
+  background-color: #b4b4b4;
+
+  -webkit-transition: width 0.05s ease-out;
+  -moz-transition: width 0.05s ease-out;
+  -o-transition: width 0.05s ease-out;
+  transition: width 0.05s ease-out;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 850px) {
+
+  body {
+    font-size: 70%;
+  }
+
+  .slide-content {
+    width: auto;
+  }
+
+  img {
+    width: 100%;
+  }
+
+  h1 {
+    margin-top: 120px;
+  }
+
+  .prev, .prev:hover {
+    border-right-color: rgba(135, 135, 135, 0.5);
+  }
+
+  .next, .next:hover {
+    border-left-color: rgba(135, 135, 135, 0.5);
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 50%;
+    overflow: hidden;
+  }
+
+  .slide-content {
+    padding: 10px;
+    margin-top: 10px;
+    height: 340px;
+  }
+
+  h1 {
+    margin-top: 50px;
+  }
+
+  ul {
+    padding-left: 25px;
+  }
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+  }
+
+  @page {
+    size: letter;
+  }
+
+  .hidden {
+    display: inline;
+  }
+
+  html {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  body {
+    margin: 0 auto !important;
+    border: 0;
+    padding: 0;
+    float: none !important;
+    overflow: visible;
+    background: none !important;
+    font-size: 52%;
+  }
+
+  .progress, .controls {
+    display: none;
+  }
+
+  .slide {
+    position: static;
+  }
+
+  .slide-content {
+    border: 1px solid #222;
+    margin-top: 0;
+    margin-bottom: 40px;
+    height: 3.5in;
+    overflow: visible;
+  }
+
+  .slide:nth-child(even) {
+    /* 2 slides per page */
+    page-break-before: always;
+  }
+}
+
+/*
+github.com style (c) Vasily Polovnyov <vast@whiteants.net>
+*/
+
+code, pre {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  overflow: auto;
+  padding: 6px 10px;
+}
+
+code {
+  padding: 0 5px;
+}
+
+pre>code {
+  margin: 0; padding: 0;
+  border: none;
+  background: transparent;
+}
+
+pre .comment,
+pre .template_comment,
+pre .diff .header,
+pre .javadoc {
+  color: #998;
+  font-style: italic
+}
+
+pre .keyword,
+pre .css .rule .keyword,
+pre .winutils,
+pre .javascript .title,
+pre .nginx .title,
+pre .subst,
+pre .request,
+pre .status {
+  color: #333;
+  font-weight: bold
+}
+
+pre .number,
+pre .hexcolor,
+pre .ruby .constant {
+  color: #099;
+}
+
+pre .string,
+pre .tag .value,
+pre .phpdoc,
+pre .tex .formula {
+  color: #d14
+}
+
+pre .title,
+pre .id {
+  color: #900;
+  font-weight: bold
+}
+
+pre .javascript .title,
+pre .lisp .title,
+pre .clojure .title,
+pre .subst {
+  font-weight: normal
+}
+
+pre .class .title,
+pre .haskell .type,
+pre .vhdl .literal,
+pre .tex .command {
+  color: #458;
+  font-weight: bold
+}
+
+pre .tag,
+pre .tag .title,
+pre .rules .property,
+pre .django .tag .keyword {
+  color: #000080;
+  font-weight: normal
+}
+
+pre .attribute,
+pre .variable,
+pre .lisp .body {
+  color: #008080
+}
+
+pre .regexp {
+  color: #009926
+}
+
+pre .class {
+  color: #458;
+  font-weight: bold
+}
+
+pre .symbol,
+pre .ruby .symbol .string,
+pre .lisp .keyword,
+pre .tex .special,
+pre .prompt {
+  color: #990073
+}
+
+pre .built_in,
+pre .lisp .title,
+pre .clojure .built_in {
+  color: #0086b3
+}
+
+pre .preprocessor,
+pre .pi,
+pre .doctype,
+pre .shebang,
+pre .cdata {
+  color: #999;
+  font-weight: bold
+}
+
+pre .deletion {
+  background: #fdd
+}
+
+pre .addition {
+  background: #dfd
+}
+
+pre .diff .change {
+  background: #0086b3
+}
+
+pre .chunk {
+  color: #aaa
+}
+
+
+  </style>
+</head>
+<body>
+    <div class="progress">
+    <div class="progress-bar"></div>
+  </div>
+
+  <div class="slide" id="slide-1">
+    <section class="slide-content"><h1 id="flask-hacks-and-best-practices">Flask Hacks and Best Practices</h1>
+<h2 id="erik-taubeneck">Erik Taubeneck</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-2">
+    <section class="slide-content"><h3 id="about-me">About Me</h3>
+<ul>
+<li>@taubeneck</li>
+<li>skien.cc</li>
+<li>github.com/eriktaubeneck</li>
+<li>Flask user for 3 years</li>
+<li>Help maintain Flask-Social, Flask-S3</li>
+<li>Ordbok: a Flask compatible configuration library</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-3">
+    <section class="slide-content"><h3 id="overview">Overview</h3>
+<ul>
+<li>Flask Crash Course</li>
+<li>Flask app factory pattern</li>
+<li>Using Celery with the app factory pattern</li>
+<li>Context Processors</li>
+<li>Configurations</li>
+<li>Building Custom Extensions</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-4">
+    <section class="slide-content"><h3 id="flask-crash-course">Flask Crash Course</h3>
+<div style="text-align: center; margin-top:100px">
+<a href="http://flask.pocoo.org/"><img src="flask.svg" alt=""></a>
+</div>
+
+<p><em>Flask is a microframework for Python based on Werkzeug, Jinja 2 and good intentions. And before you ask: It&#39;s <a href="http://flask.pocoo.org/docs/license/">BSD licensed</a>!</em></p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-5">
+    <section class="slide-content"><h3 id="flask-crash-course">Flask Crash Course</h3>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>hello.py</em> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, render_template
+app = Flask(__name__)
+
+<span class="decorator">@app.route("/")</span>
+<span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span>
+    <span class="keyword">return</span> render_template(<span class="string">'hello.html'</span>, message=<span class="string">"Hello World!"</span>)
+
+<span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:
+    app.run()</code></pre>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>templates/hello.html</em> </div></p>
+<pre><code>&lt;html&gt;
+  &lt;body&gt;
+    {{ message }}
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>bash</em> </div></p>
+<pre><code>&gt; cd hello-flask
+&gt; virtualenv venv
+&gt; source venv/bin/activate
+&gt; pip install flask
+&gt; python hello.py
+ * Running on http://localhost:5000/</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-6">
+    <section class="slide-content"><h3 id="application-factories">Application Factories</h3>
+<p>Instead of creating your app as</p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask
+
+app = Flask(__name__)</code></pre>
+<p>wrap it in a function</p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask
+
+<span class="function"><span class="keyword">def</span> <span class="title">factory</span><span class="params">()</span>:</span>
+    app = Flask(__name__)
+    <span class="keyword">return</span> app</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-7">
+    <section class="slide-content"><h3 id="application-factories">Application Factories</h3>
+<p>Instead of accessing attributes of the <code>app</code> object</p>
+<pre><code class="lang-python"><span class="keyword">from</span> app <span class="keyword">import</span> app
+
+app.config[<span class="string">'RELEVANT_CONFIG_VARIABLE'</span>]</code></pre>
+<p>use the Flask <code>current_app</code> function</p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> current_app
+
+current_app.config[<span class="string">'RELEVANT_CONFIG_VARIABLE'</span>]</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-8">
+    <section class="slide-content"><h3 id="application-factories">Application Factories</h3>
+<p>What&#39;s the big deal?</p>
+<ol>
+<li>Testing. Create different instances of your <code>app</code></li>
+</ol>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-9">
+    <section class="slide-content"><h3 id="application-factories">Application Factories</h3>
+<p>What&#39;s the big deal?</p>
+<ol>
+<li>Testing. Create different instances of your <code>app</code></li>
+<li>Multiple Instances running in one process</li>
+</ol>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-10">
+    <section class="slide-content"><h3 id="application-factories">Application Factories</h3>
+<p>What&#39;s the big deal?</p>
+<ol>
+<li>Testing. Create different instances of your <code>app</code></li>
+<li>Multiple Instances running in one process</li>
+<li><code>from app import app</code> -&gt; circular imports</li>
+</ol>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-11">
+    <section class="slide-content"><h3 id="application-factories">Application Factories</h3>
+<p>A more thorough example:</p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask
+<span class="keyword">from</span> app.utils.processors <span class="keyword">import</span> register_processors
+<span class="keyword">from</span> app.models <span class="keyword">import</span> db
+<span class="keyword">from</span> app.views.index <span class="keyword">import</span> index_bp
+<span class="keyword">from</span> app.views.admin <span class="keyword">import</span> admin
+
+
+<span class="function"><span class="keyword">def</span> <span class="title">create_app</span><span class="params">(config=None, environment=None)</span>:</span>
+    app = Flask(__name__)
+    app.config[<span class="string">'ENVIRONMENT'</span>] = environment
+    app.config.update(config <span class="keyword">or</span> {})
+
+    db.init_app(app)
+    admin.init_app(app)
+
+    app.register_blueprint(index_bp)
+    register_processors(app)
+
+    <span class="keyword">return</span> app</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-12">
+    <section class="slide-content"><h3 id="application-factories">Application Factories</h3>
+<p>Most Flask extensions provide a <code>init_app</code> method.</p>
+<p>For example:</p>
+<pre><code class="lang-python"><span class="class"><span class="keyword">class</span> <span class="title">FlaskExtension</span><span class="params">(object)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, app=None)</span>:</span>
+        <span class="keyword">if</span> app:
+            self.init_app(app)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">init_app</span><span class="params">(self, app)</span>:</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> hasattr(app, <span class="string">'extensions'</span>):
+            app.extensions = {}
+        app.extensions[<span class="string">'EXTENSION'</span>] = self</code></pre>
+<div style="font-size: 25px;">
+<ul>
+<li> Note that we do not set <code>self.app = app</code> on the extension. </li>
+<li> Extensions should be designed to work with multiple app. </li>
+<li> Should always use <code>current_app</code> if the <code>app</code> object is needed. </li>
+</ul>
+</div></section>
+  </div>
+  <div class="slide hidden" id="slide-13">
+    <section class="slide-content"><h3 id="using-celery-with-app-factories">Using Celery with App Factories</h3>
+<p>TODO</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-14">
+    <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
+<p>In our base template, we likely have something like this near the top of the page.</p>
+<pre><code>{% if user.is_authenticated() %}
+  &lt;div class=&quot;signup&quot;&gt;
+    Welcome {{ user.full_name }}!
+    &lt;a href=&quot;{{ url_for(&#39;profile&#39;, user) }}&quot;&gt;(Profile)&lt;/a&gt;
+  &lt;/div&gt;
+{% else %}
+ &lt;div class=&quot;signup&quot;&gt;
+    Welcome!
+    &lt;a href=&quot;{{ url_for(&#39;signup&#39;) }}&quot;&gt;Signup to join.&lt;/a&gt;
+  &lt;/div&gt;
+{% endif %}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-15">
+    <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
+<p>To handle this</p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask.ext.security <span class="keyword">import</span> current_user
+
+<span class="decorator">@bp.route('/gnarly')</span>
+<span class="function"><span class="keyword">def</span> <span class="title">gnarly</span><span class="params">()</span>:</span>
+    ...
+    <span class="keyword">return</span> render_template(<span class="string">'gnarly.html'</span>, user=current_user)
+
+<span class="decorator">@bp.route('/tubular')</span>
+<span class="function"><span class="keyword">def</span> <span class="title">tubular</span><span class="params">()</span>:</span>
+    ...
+    <span class="keyword">return</span> render_template(<span class="string">'tubular.html'</span>, user=current_user)
+
+<span class="decorator">@bp.route('/way-cool')</span>
+<span class="function"><span class="keyword">def</span> <span class="title">way_cool</span><span class="params">()</span>:</span>
+    ...
+    <span class="keyword">return</span> render_template(<span class="string">'way_cool.html'</span>, user=current_user)
+
+<span class="decorator">@bp.route('/awesome')</span>
+<span class="function"><span class="keyword">def</span> <span class="title">awesome</span><span class="params">()</span>:</span>
+    ...
+    <span class="keyword">return</span> render_template(<span class="string">'awesome.html'</span>, user=current_user)</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-16">
+    <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
+<p>We can use a Flask Context Processor to always inject the <code>current_user</code> object</p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask.ext.security <span class="keyword">import</span> current_user
+
+<span class="function"><span class="keyword">def</span> <span class="title">user_context_processor</span><span class="params">()</span>:</span>
+    <span class="keyword">if</span> current_user.is_authenticated():
+        user = current_user._get_current_object()
+    <span class="keyword">else</span>:
+        user = <span class="built_in">None</span>
+    <span class="keyword">return</span> {
+        <span class="string">'user'</span>: user,
+    }
+
+<span class="function"><span class="keyword">def</span> <span class="title">register_processors</span><span class="params">(app)</span>:</span>
+    app.context_processor(user_context_processor)</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-17">
+    <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
+<p>We simplify our routes</p>
+<pre><code class="lang-python"><span class="decorator">@bp.route('/gnarly')</span>
+<span class="function"><span class="keyword">def</span> <span class="title">gnarly</span><span class="params">()</span>:</span>
+    ...
+    <span class="keyword">return</span> render_template(<span class="string">'gnarly.html'</span>)
+
+<span class="decorator">@bp.route('/tubular')</span>
+<span class="function"><span class="keyword">def</span> <span class="title">tubular</span><span class="params">()</span>:</span>
+    ...
+    <span class="keyword">return</span> render_template(<span class="string">'tubular.html'</span>)
+
+<span class="decorator">@bp.route('/way-cool')</span>
+<span class="function"><span class="keyword">def</span> <span class="title">way_cool</span><span class="params">()</span>:</span>
+    ...
+    <span class="keyword">return</span> render_template(<span class="string">'way_cool.html'</span>)
+
+<span class="decorator">@bp.route('/awesome')</span>
+<span class="function"><span class="keyword">def</span> <span class="title">awesome</span><span class="params">()</span>:</span>
+    ...
+    <span class="keyword">return</span> render_template(<span class="string">'awesome.html'</span>)</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-18">
+    <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
+<p>and simplify usage in the template</p>
+<pre><code>{% if user %}
+  &lt;div class=&quot;signup&quot;&gt;
+    Welcome {{ user.full_name }}!
+    &lt;a href=&quot;{{ url_for(&#39;profile&#39;, user) }}&quot;&gt;(Profile)&lt;/a&gt;
+  &lt;/div&gt;
+{% else %}
+  &lt;div class=&quot;signup&quot;&gt;
+    Welcome!
+    &lt;a href=&quot;{{ url_for(&#39;signup&#39;) }}&quot;&gt;Signup to join.&lt;/a&gt;
+  &lt;/div&gt;
+{% endif %}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-19">
+    <section class="slide-content"><h3 id="flask-configurations">Flask Configurations</h3>
+<div style="margin-bottom:-15px">
+By default, <code>app.config</code> is a <code>dict</code> like object with
+</div>
+
+<pre><code>&lt;Config {
+    &#39;JSON_AS_ASCII&#39;: True,
+    &#39;USE_X_SENDFILE&#39;: False,
+    &#39;SESSION_COOKIE_PATH&#39;: None,
+    &#39;SESSION_COOKIE_DOMAIN&#39;: None,
+    &#39;SESSION_COOKIE_NAME&#39;: &#39;session&#39;,
+    &#39;LOGGER_NAME&#39;: &#39;__main__&#39;,
+    &#39;DEBUG&#39;: False,
+    &#39;SECRET_KEY&#39;: None,
+    &#39;MAX_CONTENT_LENGTH&#39;: None,
+    &#39;APPLICATION_ROOT&#39;: None,
+    &#39;SERVER_NAME&#39;: None,
+    &#39;PREFERRED_URL_SCHEME&#39;: &#39;http&#39;,
+    &#39;JSONIFY_PRETTYPRINT_REGULAR&#39;: True,
+    &#39;TESTING&#39;: False,
+    &#39;PERMANENT_SESSION_LIFETIME&#39;: datetime.timedelta(31),
+    &#39;PROPAGATE_EXCEPTIONS&#39;: None,
+    &#39;TRAP_BAD_REQUEST_ERRORS&#39;: False,
+    &#39;JSON_SORT_KEYS&#39;: True,
+    &#39;SESSION_COOKIE_HTTPONLY&#39;: True,
+    &#39;SEND_FILE_MAX_AGE_DEFAULT&#39;: 43200,
+    &#39;PRESERVE_CONTEXT_ON_EXCEPTION&#39;: None,
+    &#39;SESSION_COOKIE_SECURE&#39;: False,
+    &#39;TRAP_HTTP_EXCEPTIONS&#39;: False
+}&gt;</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-20">
+    <section class="slide-content"><h3 id="flask-configurations">Flask Configurations</h3>
+<p><code>app.config</code> can also configure extensions!</p>
+<pre><code class="lang-python"><span class="class"><span class="keyword">class</span> <span class="title">FlaskExtension</span><span class="params">(object)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, app=None)</span>:</span>
+        <span class="keyword">if</span> app:
+            self.init_app(app)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">init_app</span><span class="params">(self, app)</span>:</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> hasattr(app, <span class="string">'extensions'</span>):
+            app.extensions = {}
+        app.extensions[<span class="string">'EXTENSION'</span>] = self
+        self.active = app.config.get(<span class="string">'EXTENSION_ACTIVE'</span>)
+        self.style = app.config.get(<span class="string">'EXTENSION_STYLE'</span>)</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-21">
+    <section class="slide-content"><h3 id="flask-configurations">Flask Configurations</h3>
+<p>Application Factories can become messy with config logic</p>
+<pre><code class="lang-python"><span class="function"><span class="keyword">def</span> <span class="title">create_app</span><span class="params">(config=None, environment=None)</span>:</span>
+    app = Flask(__name__)
+    app.config[<span class="string">'ENVIRONMENT'</span>] = environment
+    app.config.update(config <span class="keyword">or</span> {})
+
+    <span class="keyword">if</span> app[<span class="string">'ENVIRONMENT'</span>] <span class="keyword">in</span> (<span class="string">'PRODUCTION'</span>, <span class="string">'TESTING'</span>):
+        app.config[<span class="string">'EXTENSION_ACTIVE'</span>] = <span class="built_in">True</span>
+    <span class="keyword">else</span>:
+        app.config[<span class="string">'EXTENSION_ACTIVE'</span>] = <span class="built_in">False</span>
+
+    <span class="keyword">if</span> app[<span class="string">'ENVIRONMENT'</span>] = <span class="string">'TESTING'</span>:
+        app.config[<span class="string">'EXTENTION_STYLE'</span>] = <span class="string">'testing'</span>
+
+    <span class="keyword">if</span> app[<span class="string">'ENVIRONMENT'</span>] = <span class="string">'PRODUCTION'</span>:
+        app.config[<span class="string">'SECRET_KEY'</span>] = <span class="string">'27d4c2bc-0fac-4ea1-98e8-1ea1feba31f1'</span>
+        app.config[<span class="string">'SERVER_NAME'</span>] = <span class="string">'flask-special.com'</span>
+    ...
+    <span class="keyword">return</span> app</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-22">
+    <section class="slide-content"><h3 id="flask-configuration">Flask Configuration</h3>
+<p>Use the right tool for the job.</p>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>config.yaml</em> </div></p>
+<pre><code class="lang-python">COMMON: &amp;common
+  DEBUG: <span class="built_in">False</span>
+  EXTENSION_ACTIVE: <span class="built_in">True</span>
+
+DEVELOPMENT: &amp;development
+  &lt;&lt;: *common
+  EXTENSION_ACTIVE: <span class="built_in">False</span>
+
+TESTING: &amp;testing
+  &lt;&lt;: *common
+  EXTENSION_STYLE: <span class="string">'testing'</span>
+
+PRODUCTION: &amp;production
+  &lt;&lt;: *common
+  SECRET_KEY: <span class="string">'27d4c2bc-0fac-4ea1-98e8-1ea1feba31f1'</span>
+  SERVER_NAME: <span class="string">'flask-special.com'</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-23">
+    <section class="slide-content"><h3 id="ordbok">Ordbok</h3>
+<p>A library for managing complex configurations.</p>
+<ul>
+<li>YAML based configurations (JSON also supported*)</li>
+<li>Allows for config variables to easily be overridden<ul>
+<li>Creates a hierarchy of configuration sources</li>
+<li><code>config.yml</code> &lt; <code>local_config.yml</code> &lt; <em>env</em></li>
+<li>Explicitly require variables in later configurations</li>
+</ul>
+</li>
+<li>Encrypted config file type for secrets</li>
+</ul>
+<div style="font-size:20px;"> <em>* JSON is valid YAML</em> </div></section>
+  </div>
+  <div class="slide hidden" id="slide-24">
+    <section class="slide-content"><h3 id="ordbok">Ordbok</h3>
+<p>Example Configuration</p>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>config.yaml</em> </div></p>
+<pre><code class="lang-python">COMMON: &amp;common
+  DEBUG: <span class="built_in">False</span>
+  EXTENSION_ACTIVE: <span class="built_in">True</span>
+
+DEVELOPMENT: &amp;development
+  &lt;&lt;: *common
+  EXTENSION_ACTIVE: <span class="built_in">False</span>
+  SQLALCHEMY_URL: <span class="string">'ordbok_local_config'</span>
+
+PRODUCTION: &amp;production
+  &lt;&lt;: *common
+  SECRET_KEY: <span class="string">'ordbok_private_config'</span>
+  SQLALCHEMY_URL: <span class="string">'ordbok_env_config_database_uri'</span>
+  SERVER_NAME: <span class="string">'flask-special.com'</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-25">
+    <section class="slide-content"><h3 id="ordbok">Ordbok</h3>
+<p>Using with Flask</p>
+<pre><code class="lang-python"><span class="keyword">from</span> ordbok.flask_helper <span class="keyword">import</span> FlaskOrdbok
+
+
+<span class="function"><span class="keyword">def</span> <span class="title">create_app</span><span class="params">(config=None, environment=None)</span>:</span>
+    app = Flask(__name__)
+    ordbok = FlaskOrdbok(app)
+    ordbok.load()
+    app.config.update(ordbok)
+    app.config.update(config <span class="keyword">or</span> {})
+    ...
+    <span class="keyword">return</span> app
+
+<span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:
+    app = create_app(environment=<span class="string">'DEVELOPMENT'</span>)
+    ordbok = app.extensions[<span class="string">'ordbok'</span>]
+    ordbok.app_run(app)</code></pre>
+<p><code>ordbok.app_run(app)</code> will auto-reload on changes to yaml config, as well as changes to python source files.</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-26">
+    <section class="slide-content"><h3 id="ordbok">Ordbok</h3>
+<div style="top-margin:-20px; bottom-margin:-20px">
+Help Hack on Ordbok!
+</div>
+<div style="top-margin:-20px; bottom-margin:-20px">
+<a href="https://github.com/eriktaubeneck/ordbok"><a href="https://github.com/eriktaubeneck/ordbok">https://github.com/eriktaubeneck/ordbok</a></a>
+</div>
+
+<div style="top-margin:-20px; bottom-margin:-20px">
+<a href="https://travis-ci.org/eriktaubeneck/ordbok"><img src="https://travis-ci.org/eriktaubeneck/ordbok.svg?branch=master" alt="Build Status"></a>
+<a href="https://coveralls.io/r/eriktaubeneck/ordbok"><img src="https://img.shields.io/coveralls/eriktaubeneck/ordbok.svg" alt="Coverage Status"></a>
+<a href="https://codeclimate.com/github/eriktaubeneck/ordbok"><img src="https://codeclimate.com/github/eriktaubeneck/ordbok/badges/gpa.svg" alt="Code Climate"></a>
+<a href="https://readthedocs.org/projects/ordbok/?badge=latest"><img src="https://readthedocs.org/projects/ordbok/badge/?version=latest" alt="Documentation Status"></a>
+<a href="https://pypi.python.org/pypi/ordbok/"><img src="https://img.shields.io/pypi/v/ordbok.svg" alt="PyPI"></a>
+<a href="https://pypi.python.org/pypi/ordbok/"><img src="https://img.shields.io/pypi/wheel/ordbok.svg" alt="Wheels"></a>
+<a href="https://pypi.python.org/pypi/ordbok/"><img src="https://img.shields.io/pypi/l/ordbok.svg" alt="License"></a>
+</div>
+
+<p><img src="ordbok.png" style="width:70%; height:70%"></p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-27">
+    <section class="slide-content"><div class="author">
+  <h1 class="name">Erik Taubeneck</h1>
+    <h3 class="twitter">
+      <a href="http://twitter.com/@taubeneck">@taubeneck</a>
+    </h3>
+    <h3 class="github">
+      <a href="https://github.com/github.com/eriktaubeneck">github.com/eriktaubeneck</a>
+    </h3>
+    <h3 class="url">
+      <a href="http://skien.cc">http://skien.cc</a>
+    </h3>
+</div>
+</section>
+  </div>
+
+  <div class="controls">
+    <div class="arrow prev"></div>
+    <div class="arrow next"></div>
+  </div>
+
+
+  <script type="text/javascript">
+    /**
+ * Returns the current page number of the presentation.
+ */
+function currentPosition() {
+  return parseInt(document.querySelector('.slide:not(.hidden)').id.slice(6));
+}
+
+
+/**
+ * Navigates forward n pages
+ * If n is negative, we will navigate in reverse
+ */
+function navigate(n) {
+  var position = currentPosition();
+  var numSlides = document.getElementsByClassName('slide').length;
+
+  /* Positions are 1-indexed, so we need to add and subtract 1 */
+  var nextPosition = (position - 1 + n) % numSlides + 1;
+
+  /* Normalize nextPosition in-case of a negative modulo result */
+  nextPosition = (nextPosition - 1 + numSlides) % numSlides + 1;
+
+  document.getElementById('slide-' + position).classList.add('hidden');
+  document.getElementById('slide-' + nextPosition).classList.remove('hidden');
+
+  updateProgress();
+  updateURL();
+  updateTabIndex();
+}
+
+
+/**
+ * Updates the current URL to include a hashtag of the current page number.
+ */
+function updateURL() {
+  window.history.replaceState({} , null, '#' + currentPosition());
+}
+
+
+/**
+ * Sets the progress indicator.
+ */
+function updateProgress() {
+  var progressBar = document.querySelector('.progress-bar');
+
+  if (progressBar !== null) {
+    var numSlides = document.getElementsByClassName('slide').length;
+    var position = currentPosition() - 1;
+    var percent = (numSlides === 1) ? 100 : 100 * position / (numSlides - 1);
+    progressBar.style.width = percent.toString() + '%';
+  }
+}
+
+
+/**
+ * Removes tabindex property from all links on the current slide, sets
+ * tabindex = -1 for all links on other slides. Prevents slides from appearing
+ * out of control.
+ */
+function updateTabIndex() {
+  var allLinks = document.querySelectorAll('.slide a');
+  var position = currentPosition();
+  var currentPageLinks = document.getElementById('slide-' + position).querySelectorAll('a');
+  var i;
+
+  for (i = 0; i < allLinks.length; i++) {
+    allLinks[i].setAttribute('tabindex', -1);
+  }
+
+  for (i = 0; i < currentPageLinks.length; i++) {
+    currentPageLinks[i].removeAttribute('tabindex');
+  }
+}
+
+/**
+ * Determines whether or not we are currently in full screen mode
+ */
+function isFullScreen() {
+  return document.fullscreenElement ||
+         document.mozFullScreenElement ||
+         document.webkitFullscreenElement ||
+         document.msFullscreenElement;
+}
+
+/**
+ * Toggle fullScreen mode on document element.
+ * Works on chrome (>= 15), firefox (>= 9), ie (>= 11), opera(>= 12.1), safari (>= 5).
+ */
+function toggleFullScreen() {
+  /* Convenient renames */
+  var docElem = document.documentElement;
+  var doc = document;
+
+  docElem.requestFullscreen =
+      docElem.requestFullscreen ||
+      docElem.msRequestFullscreen ||
+      docElem.mozRequestFullScreen ||
+      docElem.webkitRequestFullscreen.bind(docElem, Element.ALLOW_KEYBOARD_INPUT);
+
+  doc.exitFullscreen =
+      doc.exitFullscreen ||
+      doc.msExitFullscreen ||
+      doc.mozCancelFullScreen ||
+      doc.webkitExitFullscreen;
+
+  isFullScreen() ? doc.exitFullscreen() : docElem.requestFullscreen();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Update the tabindex to prevent weird slide transitioning
+  updateTabIndex();
+
+  // If the location hash specifies a page number, go to it.
+  var page = window.location.hash.slice(1);
+  if (page) {
+    navigate(parseInt(page) - 1);
+  }
+
+  document.onkeydown = function (e) {
+    var kc = e.keyCode;
+
+    // left, down, H, J, backspace, PgUp - BACK
+    // up, right, K, L, space, PgDn - FORWARD
+    // enter - FULLSCREEN
+    if (kc === 37 || kc === 40 || kc === 8 || kc === 72 || kc === 74 || kc === 33) {
+      navigate(-1);
+    } else if (kc === 38 || kc === 39 || kc === 32 || kc === 75 || kc === 76 || kc === 34) {
+      navigate(1);
+    } else if (kc === 13) {
+      toggleFullScreen();
+    }
+  };
+
+  if (document.querySelector('.next') && document.querySelector('.prev')) {
+    document.querySelector('.next').onclick = function (e) {
+      e.preventDefault();
+      navigate(1);
+    };
+
+    document.querySelector('.prev').onclick = function (e) {
+      e.preventDefault();
+      navigate(-1);
+    };
+  }
+});
+
+
+  </script>
+</body>
+</html>
