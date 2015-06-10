@@ -17,12 +17,32 @@ author:
 
 ### About Me
 
-- @taubeneck
-- skien.cc
-- github.com/eriktaubeneck
-- Flask user for 3 years
-- Help maintain Flask-Social, Flask-S3
-- Ordbok: a Flask compatible configuration library
+<div class="author">
+<h1 class="name">Erik Taubeneck</h1>
+<h3 class="twitter">
+<a href="http://twitter.com/@taubeneck">@taubeneck</a>
+</h3>
+<h3 class="github">
+<a href="https://github.com/github.com/eriktaubeneck">github.com/eriktaubeneck</a>
+</h3>
+<h3 class="url">
+<a href="http://skien.cc">http://skien.cc</a>
+</h3>
+</div>
+
+--
+
+### About Me
+
+<div class="author" style="text-align: center; margin-top:-150px; margin-bottom:-70px; font-size:20px">
+<h1 class="name">Platform Engineer @ </h1>
+</div>
+
+<div style="text-align: center; margin-top:-50px;">
+
+<img src="gamechanger_logo_black.png" style="width:80%; height:80%">
+<img src="gamechanger_devices.png" style="width:70%; height:70%">
+</div>
 
 --
 
@@ -521,14 +541,14 @@ if __name__ == '__main__':
 
 ### Ordbok
 
-<div style="top-margin:-20px; bottom-margin:-20px">
+<div style="top-margin:-20px; bottom-margin:-20px; text-align:center">
 Help Hack on Ordbok!
 </div>
-<div style="top-margin:-20px; bottom-margin:-20px">
+<div style="top-margin:-20px; bottom-margin:-20px; text-align:center">
 [https://github.com/eriktaubeneck/ordbok](https://github.com/eriktaubeneck/ordbok)
 </div>
 
-<div style="top-margin:-20px; bottom-margin:-20px">
+<div style="top-margin:-20px; bottom-margin:-20px; text-align:center">
 [![Build Status](https://travis-ci.org/eriktaubeneck/ordbok.svg?branch=master)](https://travis-ci.org/eriktaubeneck/ordbok)
 [![Coverage Status](https://img.shields.io/coveralls/eriktaubeneck/ordbok.svg)](https://coveralls.io/r/eriktaubeneck/ordbok)
 [![Code Climate](https://codeclimate.com/github/eriktaubeneck/ordbok/badges/gpa.svg)](https://codeclimate.com/github/eriktaubeneck/ordbok)
@@ -536,6 +556,12 @@ Help Hack on Ordbok!
 [![PyPI](https://img.shields.io/pypi/v/ordbok.svg)](https://pypi.python.org/pypi/ordbok/)
 [![Wheels](https://img.shields.io/pypi/wheel/ordbok.svg)](https://pypi.python.org/pypi/ordbok/)
 [![License](https://img.shields.io/pypi/l/ordbok.svg)](https://pypi.python.org/pypi/ordbok/)
-</div>
 
 <img src="ordbok.png" style="width:70%; height:70%">
+</div>
+
+--
+
+## Write a Flask Extension
+
+TODO
