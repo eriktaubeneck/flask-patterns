@@ -339,8 +339,9 @@ init_celery(app, celery)
 ```
 
 <div style="font-size:25px; margin-bottom:-15px; margin-top:0px; margin-left:5px"> run with </div>
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> _bash_ </div>
 ```
-celery worker -A runcelery.celery --loglevel=debug
+> celery worker -A runcelery.celery --loglevel=debug
 ```
 
 --
