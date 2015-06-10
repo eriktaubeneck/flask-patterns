@@ -579,11 +579,99 @@ current_app.config[<span class="string">'RELEVANT_CONFIG_VARIABLE'</span>]</code
 </div></section>
   </div>
   <div class="slide hidden" id="slide-14">
-    <section class="slide-content"><h3 id="using-celery-with-app-factories">Using Celery with App Factories</h3>
-<p>TODO</p>
-</section>
+    <section class="slide-content"><h3 id="celery">Celery</h3>
+<div style="text-align: center; margin-top:15px;">
+<a href="http://www.celeryproject.org/"><img src="celery.png" alt=""></a>
+<br>
+A distributed Task Queue
+</div>
+
+<div style="text-align: center; margin-top:-50px;">
+<img src="queue.png" alt="">
+</div></section>
   </div>
   <div class="slide hidden" id="slide-15">
+    <section class="slide-content"><h3 id="using-celery-with-flask">Using Celery with Flask</h3>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>app.py</em> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> celery <span class="keyword">import</span> Celery
+<span class="keyword">from</span> flask <span class="keyword">import</span> Flask
+
+<span class="function"><span class="keyword">def</span> <span class="title">make_celery</span><span class="params">(app)</span>:</span>
+    celery = Celery(app.import_name, broker=app.config[<span class="string">'CELERY_BROKER_URL'</span>])
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+    <span class="class"><span class="keyword">class</span> <span class="title">ContextTask</span><span class="params">(TaskBase)</span>:</span>
+        abstract = <span class="built_in">True</span>
+        <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, *args, **kwargs)</span>:</span>
+            <span class="keyword">with</span> app.app_context():
+                <span class="keyword">return</span> TaskBase.__call__(self, *args, **kwargs)
+    celery.Task = ContextTask
+    <span class="keyword">return</span> celery
+
+app = Flask(__name__)
+app.config.update(
+    CELERY_BROKER_URL=<span class="string">'redis://localhost:6379'</span>,
+    CELERY_RESULT_BACKEND=<span class="string">'redis://localhost:6379'</span>
+)
+celery = make_celery(app)
+
+<span class="decorator">@celery.task()</span>
+<span class="function"><span class="keyword">def</span> <span class="title">add_together</span><span class="params">(a, b)</span>:</span>
+    <span class="keyword">return</span> a + b</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-16">
+    <section class="slide-content"><h3 id="using-celery-with-app-factories">Using Celery with App Factories</h3>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i>app/__init__.py</i> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> celery <span class="keyword">import</span> Celery
+celery = Celery(<span class="string">'app.factory'</span>)</code></pre>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i>app/utils/celery_util.py</i> </div></p>
+<pre><code class="lang-python"><span class="function"><span class="keyword">def</span> <span class="title">init_celery</span><span class="params">(app, celery)</span>:</span>
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+    <span class="class"><span class="keyword">class</span> <span class="title">ContextTask</span><span class="params">(TaskBase)</span>:</span>
+        abstract = <span class="built_in">True</span>
+        <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, *args, **kwargs)</span>:</span>
+            <span class="keyword">with</span> app.app_context():
+                <span class="keyword">return</span> TaskBase.__call__(self, *args, **kwargs)
+    celery.Task = ContextTask</code></pre>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-22px; margin-left:5px"> <em>app/factory.py</em> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask
+form app <span class="keyword">import</span> celery
+<span class="keyword">from</span> app.utils.celery_util <span class="keyword">import</span> init_celery
+<span class="function"><span class="keyword">def</span> <span class="title">create_app</span><span class="params">(config=None, environment=None)</span>:</span>
+    app = Flask(__name__)
+    app.config.update({<span class="string">'CELERY_BROKER_URL'</span>:<span class="string">'redis://localhost:6379'</span>})
+    init_celery(app, celery)
+    ...
+    <span class="keyword">return</span> app</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-17">
+    <section class="slide-content"><h3 id="using-celery-with-app-factories">Using Celery with App Factories</h3>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>app/tasks/add.py</em> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> app <span class="keyword">import</span> celery
+
+<span class="decorator">@celery.task()</span>
+<span class="function"><span class="keyword">def</span> <span class="title">add_together</span><span class="params">(a, b)</span>:</span>
+    <span class="keyword">return</span> a + b</code></pre>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>runcelery.py</em> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> app <span class="keyword">import</span> celery
+<span class="keyword">from</span> app.factory <span class="keyword">import</span> create_app
+
+app = create_app()
+init_celery(app, celery)</code></pre>
+<p><div style="font-size:25px; margin-bottom:-15px; margin-top:0px; margin-left:5px"> run with </div></p>
+<pre><code>celery worker -A runcelery.celery --loglevel=debug</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-18">
+    <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
+<div style="text-align: center; margin-top:200px;">
+<img src="flask-logo.png" alt="">
+</div></section>
+  </div>
+  <div class="slide hidden" id="slide-19">
     <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
 <p>In our base template, we likely have something like this near the top of the page.</p>
 <pre><code>{% if user.is_authenticated() %}
@@ -599,7 +687,7 @@ current_app.config[<span class="string">'RELEVANT_CONFIG_VARIABLE'</span>]</code
 {% endif %}</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-16">
+  <div class="slide hidden" id="slide-20">
     <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
 <p>To handle this</p>
 <pre><code class="lang-python"><span class="keyword">from</span> flask.ext.security <span class="keyword">import</span> current_user
@@ -625,7 +713,7 @@ current_app.config[<span class="string">'RELEVANT_CONFIG_VARIABLE'</span>]</code
     <span class="keyword">return</span> render_template(<span class="string">'awesome.html'</span>, user=current_user)</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-17">
+  <div class="slide hidden" id="slide-21">
     <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
 <p>We can use a Flask Context Processor to always inject the <code>current_user</code> object</p>
 <pre><code class="lang-python"><span class="keyword">from</span> flask.ext.security <span class="keyword">import</span> current_user
@@ -643,7 +731,7 @@ current_app.config[<span class="string">'RELEVANT_CONFIG_VARIABLE'</span>]</code
     app.context_processor(user_context_processor)</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-18">
+  <div class="slide hidden" id="slide-22">
     <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
 <p>We simplify our routes</p>
 <pre><code class="lang-python"><span class="decorator">@bp.route('/gnarly')</span>
@@ -667,7 +755,7 @@ current_app.config[<span class="string">'RELEVANT_CONFIG_VARIABLE'</span>]</code
     <span class="keyword">return</span> render_template(<span class="string">'awesome.html'</span>)</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-19">
+  <div class="slide hidden" id="slide-23">
     <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
 <p>and simplify usage in the template</p>
 <pre><code>{% if user %}
@@ -683,7 +771,13 @@ current_app.config[<span class="string">'RELEVANT_CONFIG_VARIABLE'</span>]</code
 {% endif %}</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-20">
+  <div class="slide hidden" id="slide-24">
+    <section class="slide-content"><h3 id="the-magic-of-context-processors">The Magic of Context Processors</h3>
+<div style="text-align: center; margin-top:150px;">
+<img src="mario.png" alt="">
+</div></section>
+  </div>
+  <div class="slide hidden" id="slide-25">
     <section class="slide-content"><h3 id="flask-configurations">Flask Configurations</h3>
 <div style="margin-bottom:-15px">
 By default, <code>app.config</code> is a <code>dict</code> like object with
@@ -716,7 +810,7 @@ By default, <code>app.config</code> is a <code>dict</code> like object with
 }&gt;</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-21">
+  <div class="slide hidden" id="slide-26">
     <section class="slide-content"><h3 id="flask-configurations">Flask Configurations</h3>
 <p><code>app.config</code> can also configure extensions!</p>
 <pre><code class="lang-python"><span class="class"><span class="keyword">class</span> <span class="title">FlaskExtension</span><span class="params">(object)</span>:</span>
@@ -732,7 +826,7 @@ By default, <code>app.config</code> is a <code>dict</code> like object with
         self.style = app.config.get(<span class="string">'EXTENSION_STYLE'</span>)</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-22">
+  <div class="slide hidden" id="slide-27">
     <section class="slide-content"><h3 id="flask-configurations">Flask Configurations</h3>
 <p>Application Factories can become messy with config logic</p>
 <pre><code class="lang-python"><span class="function"><span class="keyword">def</span> <span class="title">create_app</span><span class="params">(config=None, environment=None)</span>:</span>
@@ -755,7 +849,7 @@ By default, <code>app.config</code> is a <code>dict</code> like object with
     <span class="keyword">return</span> app</code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-23">
+  <div class="slide hidden" id="slide-28">
     <section class="slide-content"><h3 id="flask-configuration">Flask Configuration</h3>
 <p>Use the right tool for the job.</p>
 <p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>config.yaml</em> </div></p>
@@ -777,7 +871,7 @@ PRODUCTION: &amp;production
   SERVER_NAME: <span class="string">'flask-special.com'</span></code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-24">
+  <div class="slide hidden" id="slide-29">
     <section class="slide-content"><h3 id="ordbok">Ordbok</h3>
 <p>A library for managing complex configurations.</p>
 <ul>
@@ -792,7 +886,7 @@ PRODUCTION: &amp;production
 </ul>
 <div style="font-size:20px;"> <em>* JSON is valid YAML</em> </div></section>
   </div>
-  <div class="slide hidden" id="slide-25">
+  <div class="slide hidden" id="slide-30">
     <section class="slide-content"><h3 id="ordbok">Ordbok</h3>
 <p>Example Configuration</p>
 <p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>config.yaml</em> </div></p>
@@ -812,7 +906,7 @@ PRODUCTION: &amp;production
   SERVER_NAME: <span class="string">'flask-special.com'</span></code></pre>
 </section>
   </div>
-  <div class="slide hidden" id="slide-26">
+  <div class="slide hidden" id="slide-31">
     <section class="slide-content"><h3 id="ordbok">Ordbok</h3>
 <p>Using with Flask</p>
 <pre><code class="lang-python"><span class="keyword">from</span> ordbok.flask_helper <span class="keyword">import</span> FlaskOrdbok
@@ -834,7 +928,7 @@ PRODUCTION: &amp;production
 <p><code>ordbok.app_run(app)</code> will auto-reload on changes to yaml config, as well as changes to python source files.</p>
 </section>
   </div>
-  <div class="slide hidden" id="slide-27">
+  <div class="slide hidden" id="slide-32">
     <section class="slide-content"><h3 id="ordbok">Ordbok</h3>
 <div style="top-margin:-20px; bottom-margin:-20px; text-align:center">
 Help Hack on Ordbok!
@@ -843,24 +937,116 @@ Help Hack on Ordbok!
 <a href="https://github.com/eriktaubeneck/ordbok"><a href="https://github.com/eriktaubeneck/ordbok">https://github.com/eriktaubeneck/ordbok</a></a>
 </div>
 
-<div style="top-margin:-20px; bottom-margin:-20px; text-align:center">
+<p><div style="top-margin:-20px; bottom-margin:-20px; text-align:center">
 <a href="https://travis-ci.org/eriktaubeneck/ordbok"><img src="https://travis-ci.org/eriktaubeneck/ordbok.svg?branch=master" alt="Build Status"></a>
 <a href="https://coveralls.io/r/eriktaubeneck/ordbok"><img src="https://img.shields.io/coveralls/eriktaubeneck/ordbok.svg" alt="Coverage Status"></a>
 <a href="https://codeclimate.com/github/eriktaubeneck/ordbok"><img src="https://codeclimate.com/github/eriktaubeneck/ordbok/badges/gpa.svg" alt="Code Climate"></a>
 <a href="https://readthedocs.org/projects/ordbok/?badge=latest"><img src="https://readthedocs.org/projects/ordbok/badge/?version=latest" alt="Documentation Status"></a>
 <a href="https://pypi.python.org/pypi/ordbok/"><img src="https://img.shields.io/pypi/v/ordbok.svg" alt="PyPI"></a>
 <a href="https://pypi.python.org/pypi/ordbok/"><img src="https://img.shields.io/pypi/wheel/ordbok.svg" alt="Wheels"></a>
-<a href="https://pypi.python.org/pypi/ordbok/"><img src="https://img.shields.io/pypi/l/ordbok.svg" alt="License"></a>
-
-<img src="ordbok.png" style="width:70%; height:70%">
-</div></section>
-  </div>
-  <div class="slide hidden" id="slide-28">
-    <section class="slide-content"><h2 id="write-a-flask-extension">Write a Flask Extension</h2>
-<p>TODO</p>
+<a href="https://pypi.python.org/pypi/ordbok/"><img src="https://img.shields.io/pypi/l/ordbok.svg" alt="License"></a></p>
+<p><img src="ordbok.png" style="width:70%; height:70%"></p>
 </section>
   </div>
-  <div class="slide hidden" id="slide-29">
+  <div class="slide hidden" id="slide-33">
+    <section class="slide-content"><h3 id="your-own-extensions-">Your Own Extensions!</h3>
+<div style="text-align: center; margin-top:100px;">
+<img src="we-want-you.png" alt="">
+</div></section>
+  </div>
+  <div class="slide hidden" id="slide-34">
+    <section class="slide-content"><h3 id="your-own-extensions-">Your Own Extensions!</h3>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i> ext/__init__.py</i> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> current_app
+
+<span class="class"><span class="keyword">class</span> <span class="title">Extension</span><span class="params">(object)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, app=None, db=None)</span>:</span>
+        self._app = app
+        <span class="keyword">if</span> app:
+            <span class="keyword">return</span> self.init_app(app)
+    <span class="function"><span class="keyword">def</span> <span class="title">init_app</span><span class="params">(self, app)</span>:</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> hasattr(app, <span class="string">'extensions'</span>):
+            app.extensions = {}
+        app.extensions.update({<span class="string">'extension'</span>: self,})
+
+    <span class="decorator">@property</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">app</span><span class="params">(self)</span>:</span>
+        <span class="keyword">return</span> self._app <span class="keyword">or</span> current_app
+
+    <span class="function"><span class="keyword">def</span> <span class="title">config</span><span class="params">(self, key, default=None)</span>:</span>
+        key = <span class="string">'EXTENSION_{}'</span>.format(key.upper())
+        <span class="keyword">if</span> default:
+            <span class="keyword">return</span> self.app.config.get(key, default)
+        <span class="keyword">return</span> self.app.config[key]
+
+    <span class="decorator">@property</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">namespace</span><span class="params">(self)</span>:</span>
+        <span class="keyword">return</span> self.config(<span class="string">'namespace'</span>, <span class="string">'extension'</span>)</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-35">
+    <section class="slide-content"><h3 id="your-own-extensions-with-blueprints-">Your Own Extensions with Blueprints!</h3>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i> ext/__init__.py</i> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> current_app, Blueprint
+
+extension_bp = Blueprint(<span class="string">'index'</span>, __name__, url_prefix=<span class="string">'/ext'</span>)
+
+<span class="decorator">@extension_bp.route('/', methods=('GET',))</span>
+<span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span>
+    <span class="keyword">return</span> <span class="string">'hello ext'</span>
+
+<span class="decorator">@extension_bp.route('/echo/&lt;content&gt;', methods=('GET',))</span>
+<span class="function"><span class="keyword">def</span> <span class="title">echo</span><span class="params">(content)</span>:</span>
+    <span class="keyword">return</span> content
+
+<span class="class"><span class="keyword">class</span> <span class="title">Extension</span><span class="params">(object)</span>:</span>
+    ...
+    <span class="function"><span class="keyword">def</span> <span class="title">init_app</span><span class="params">(self, app)</span>:</span>
+        ...
+        self.init_blueprints(app)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">init_blueprints</span><span class="params">(self, app)</span>:</span>
+        extension_bp.name = <span class="string">'{}.index'</span>.format(self.namespace)
+        extension_bp.url_prefix = <span class="string">'/{}'</span>.format(self.namespace)
+        app.register_blueprint(extension_bp)</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-36">
+    <section class="slide-content"><h3 id="your-own-extensions-with-sqlalchemy-models-">Your Own Extensions with SQLAlchemy Models!</h3>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i> ext/__init__.py</i> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> current_app
+<span class="keyword">from</span> flask.ext.sqlalchemy <span class="keyword">import</span> sqlalchemy <span class="keyword">as</span> sa
+
+<span class="class"><span class="keyword">class</span> <span class="title">ExtensionModelBase</span><span class="params">(object)</span>:</span>
+    id = sa.Column(sa.Integer, primary_key=<span class="built_in">True</span>)
+    content = sa.Column(sa.Text)
+
+<span class="class"><span class="keyword">class</span> <span class="title">Extension</span><span class="params">(object)</span>:</span>
+    ...
+    <span class="function"><span class="keyword">def</span> <span class="title">init_app</span><span class="params">(self, app)</span>:</span>
+        ...
+        app.extensions.update({<span class="string">'extension'</span>: self, <span class="string">'db'</span>: db})
+        self.init_models()
+
+    <span class="decorator">@property</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">db</span><span class="params">(self)</span>:</span>
+        <span class="keyword">return</span> self.app.extensions[<span class="string">'db'</span>]
+
+    <span class="function"><span class="keyword">def</span> <span class="title">init_models</span><span class="params">(self)</span>:</span>
+        <span class="class"><span class="keyword">class</span> <span class="title">ExtensionModel</span><span class="params">(self.db.Model, ExtensionModelBase)</span>:</span>
+            __tablename__ = <span class="string">'{}_model'</span>.format(self.namespace)</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-37">
+    <section class="slide-content"><h3 id="your-own-extensions-">Your Own Extensions!</h3>
+<p>Bare bones example at <a href="https://github.com/eriktaubeneck/flask-ext-test"><a href="https://github.com/eriktaubeneck/flask-ext-test">https://github.com/eriktaubeneck/flask-ext-test</a></a>.</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-38">
+    <section class="slide-content"><h3 id="thank-you-">Thank You!</h3>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-39">
     <section class="slide-content"><div class="author">
   <h1 class="name">Erik Taubeneck</h1>
     <h3 class="twitter">

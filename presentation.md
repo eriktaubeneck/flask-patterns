@@ -235,9 +235,121 @@ class FlaskExtension(object):
 
 --
 
+### Celery
+
+<div style="text-align: center; margin-top:15px;">
+[![](celery.png)](http://www.celeryproject.org/)
+<br>
+A distributed Task Queue
+</div>
+
+<div style="text-align: center; margin-top:-50px;">
+![](queue.png)
+</div>
+
+--
+
+### Using Celery with Flask
+
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> _app.py_ </div>
+```python
+from celery import Celery
+from flask import Flask
+
+def make_celery(app):
+    celery = Celery(app.import_name, broker=app.config['CELERY_BROKER_URL'])
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+    class ContextTask(TaskBase):
+        abstract = True
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+    celery.Task = ContextTask
+    return celery
+
+app = Flask(__name__)
+app.config.update(
+    CELERY_BROKER_URL='redis://localhost:6379',
+    CELERY_RESULT_BACKEND='redis://localhost:6379'
+)
+celery = make_celery(app)
+
+@celery.task()
+def add_together(a, b):
+    return a + b
+```
+
+--
+
 ### Using Celery with App Factories
 
-TODO
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i>app/\_\_init\_\_.py</i> </div>
+```python
+from celery import Celery
+celery = Celery('app.factory')
+```
+
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i>app/utils/celery\_util.py</i> </div>
+```python
+def init_celery(app, celery):
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+    class ContextTask(TaskBase):
+        abstract = True
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+    celery.Task = ContextTask
+```
+
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-22px; margin-left:5px"> _app/factory.py_ </div>
+```python
+from flask import Flask
+form app import celery
+from app.utils.celery_util import init_celery
+def create_app(config=None, environment=None):
+    app = Flask(__name__)
+    app.config.update({'CELERY_BROKER_URL':'redis://localhost:6379'})
+    init_celery(app, celery)
+    ...
+    return app
+```
+
+--
+
+### Using Celery with App Factories
+
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> _app/tasks/add.py_ </div>
+```python
+from app import celery
+
+@celery.task()
+def add_together(a, b):
+    return a + b
+```
+
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> _runcelery.py_ </div>
+```python
+from app import celery
+from app.factory import create_app
+
+app = create_app()
+init_celery(app, celery)
+```
+
+<div style="font-size:25px; margin-bottom:-15px; margin-top:0px; margin-left:5px"> run with </div>
+```
+celery worker -A runcelery.celery --loglevel=debug
+```
+
+--
+
+### The Magic of Context Processors
+
+<div style="text-align: center; margin-top:200px;">
+![](flask-logo.png)
+</div>
 
 --
 
@@ -360,6 +472,15 @@ and simplify usage in the template
   </div>
 {% endif %}
 ```
+
+--
+
+### The Magic of Context Processors
+
+<div style="text-align: center; margin-top:150px;">
+![](mario.png)
+</div>
+
 
 --
 
@@ -558,10 +679,117 @@ Help Hack on Ordbok!
 [![License](https://img.shields.io/pypi/l/ordbok.svg)](https://pypi.python.org/pypi/ordbok/)
 
 <img src="ordbok.png" style="width:70%; height:70%">
+
+--
+
+### Your Own Extensions!
+
+
+<div style="text-align: center; margin-top:100px;">
+![](we-want-you.png)
 </div>
 
 --
 
-## Write a Flask Extension
+### Your Own Extensions!
 
-TODO
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i> ext/\_\_init\_\_.py</i> </div>
+```python
+from flask import current_app
+
+class Extension(object):
+    def __init__(self, app=None, db=None):
+        self._app = app
+        if app:
+            return self.init_app(app)
+    def init_app(self, app):
+        if not hasattr(app, 'extensions'):
+            app.extensions = {}
+        app.extensions.update({'extension': self,})
+
+    @property
+    def app(self):
+        return self._app or current_app
+
+    def config(self, key, default=None):
+        key = 'EXTENSION_{}'.format(key.upper())
+        if default:
+            return self.app.config.get(key, default)
+        return self.app.config[key]
+
+    @property
+    def namespace(self):
+        return self.config('namespace', 'extension')
+
+```
+
+--
+
+### Your Own Extensions with Blueprints!
+
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i> ext/\_\_init\_\_.py</i> </div>
+```python
+from flask import current_app, Blueprint
+
+extension_bp = Blueprint('index', __name__, url_prefix='/ext')
+
+@extension_bp.route('/', methods=('GET',))
+def index():
+    return 'hello ext'
+
+@extension_bp.route('/echo/<content>', methods=('GET',))
+def echo(content):
+    return content
+
+class Extension(object):
+    ...
+    def init_app(self, app):
+        ...
+        self.init_blueprints(app)
+
+    def init_blueprints(self, app):
+        extension_bp.name = '{}.index'.format(self.namespace)
+        extension_bp.url_prefix = '/{}'.format(self.namespace)
+        app.register_blueprint(extension_bp)
+
+```
+
+--
+
+### Your Own Extensions with SQLAlchemy Models!
+
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <i> ext/\_\_init\_\_.py</i> </div>
+```python
+from flask import current_app
+from flask.ext.sqlalchemy import sqlalchemy as sa
+
+class ExtensionModelBase(object):
+    id = sa.Column(sa.Integer, primary_key=True)
+    content = sa.Column(sa.Text)
+
+class Extension(object):
+    ...
+    def init_app(self, app):
+        ...
+        app.extensions.update({'extension': self, 'db': db})
+        self.init_models()
+
+    @property
+    def db(self):
+        return self.app.extensions['db']
+
+    def init_models(self):
+        class ExtensionModel(self.db.Model, ExtensionModelBase):
+            __tablename__ = '{}_model'.format(self.namespace)
+
+```
+
+--
+
+### Your Own Extensions!
+
+Bare bones example at [https://github.com/eriktaubeneck/flask-ext-test](https://github.com/eriktaubeneck/flask-ext-test).
+
+--
+
+### Thank You!
