@@ -41,7 +41,7 @@ author:
 <div style="text-align: center; margin-top:-50px;">
 
 <img src="gamechanger_logo_black.png" style="width:80%; height:80%">
-<img src="gamechanger_devices.png" style="width:70%; height:70%">
+<img src="gamechanger_devices.png" style="width:100%; height:100%">
 </div>
 
 --
@@ -320,7 +320,7 @@ def create_app(config=None, environment=None):
 
 ### Using Celery with App Factories
 
-<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> _app/tasks/add.py_ </div>
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-25px; margin-left:5px"> _app/tasks/add.py_ </div>
 ```python
 from app import celery
 
@@ -329,17 +329,27 @@ def add_together(a, b):
     return a + b
 ```
 
-<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> _runcelery.py_ </div>
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-25px; margin-left:5px"> <i> views/add.py</i> </div>
+```python
+from app.tasks.add import add_together
+add_bp = Blueprint('add', __name__, url_prefix='/add')
+
+@extension_bp.route('/<x>/<y>', methods=('GET',))
+def index():
+    add_together.delay(x,y)
+    return 'processing'
+```
+
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-25px; margin-left:5px"> _runcelery.py_ </div>
 ```python
 from app import celery
 from app.factory import create_app
-
+from app.utls.celery_util import init_celery
 app = create_app()
 init_celery(app, celery)
 ```
 
-<div style="font-size:25px; margin-bottom:-15px; margin-top:0px; margin-left:5px"> run with </div>
-<div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> _bash_ </div>
+<div style="font-size:20px; margin-bottom:-38px; margin-top:-25px; margin-left:5px"> _bash_ </div>
 ```
 > celery worker -A runcelery.celery --loglevel=debug
 ```
@@ -699,7 +709,7 @@ Help Hack on Ordbok!
 from flask import current_app
 
 class Extension(object):
-    def __init__(self, app=None, db=None):
+    def __init__(self, app=None):
         self._app = app
         if app:
             return self.init_app(app)
@@ -770,7 +780,7 @@ class ExtensionModelBase(object):
 
 class Extension(object):
     ...
-    def init_app(self, app):
+    def init_app(self, app, db):
         ...
         app.extensions.update({'extension': self, 'db': db})
         self.init_models()
@@ -794,3 +804,16 @@ Bare bones example at [https://github.com/eriktaubeneck/flask-ext-test](https://
 --
 
 ### Thank You!
+
+--
+
+### Thank You!
+
+- Special Thanks to Thinkful for Hosting
+
+--
+
+### Thank You!
+
+- Special Thanks to Thinkful for Hosting
+- Flask-NYC and Andy Dimberger for organizing

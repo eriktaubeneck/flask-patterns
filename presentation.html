@@ -429,7 +429,7 @@ pre .chunk {
 <div style="text-align: center; margin-top:-50px;">
 
 <img src="gamechanger_logo_black.png" style="width:80%; height:80%">
-<img src="gamechanger_devices.png" style="width:70%; height:70%">
+<img src="gamechanger_devices.png" style="width:100%; height:100%">
 </div></section>
   </div>
   <div class="slide hidden" id="slide-4">
@@ -649,20 +649,27 @@ form app <span class="keyword">import</span> celery
   </div>
   <div class="slide hidden" id="slide-17">
     <section class="slide-content"><h3 id="using-celery-with-app-factories">Using Celery with App Factories</h3>
-<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>app/tasks/add.py</em> </div></p>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-25px; margin-left:5px"> <em>app/tasks/add.py</em> </div></p>
 <pre><code class="lang-python"><span class="keyword">from</span> app <span class="keyword">import</span> celery
 
 <span class="decorator">@celery.task()</span>
 <span class="function"><span class="keyword">def</span> <span class="title">add_together</span><span class="params">(a, b)</span>:</span>
     <span class="keyword">return</span> a + b</code></pre>
-<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>runcelery.py</em> </div></p>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-25px; margin-left:5px"> <i> views/add.py</i> </div></p>
+<pre><code class="lang-python"><span class="keyword">from</span> app.tasks.add <span class="keyword">import</span> add_together
+add_bp = Blueprint(<span class="string">'add'</span>, __name__, url_prefix=<span class="string">'/add'</span>)
+
+<span class="decorator">@extension_bp.route('/&lt;x&gt;/&lt;y&gt;', methods=('GET',))</span>
+<span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span>
+    add_together.delay(x,y)
+    <span class="keyword">return</span> <span class="string">'processing'</span></code></pre>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-25px; margin-left:5px"> <em>runcelery.py</em> </div></p>
 <pre><code class="lang-python"><span class="keyword">from</span> app <span class="keyword">import</span> celery
 <span class="keyword">from</span> app.factory <span class="keyword">import</span> create_app
-
+<span class="keyword">from</span> app.utls.celery_util <span class="keyword">import</span> init_celery
 app = create_app()
 init_celery(app, celery)</code></pre>
-<p><div style="font-size:25px; margin-bottom:-15px; margin-top:0px; margin-left:5px"> run with </div></p>
-<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-20px; margin-left:5px"> <em>bash</em> </div></p>
+<p><div style="font-size:20px; margin-bottom:-38px; margin-top:-25px; margin-left:5px"> <em>bash</em> </div></p>
 <pre><code>&gt; celery worker -A runcelery.celery --loglevel=debug</code></pre>
 </section>
   </div>
@@ -961,7 +968,7 @@ Help Hack on Ordbok!
 <pre><code class="lang-python"><span class="keyword">from</span> flask <span class="keyword">import</span> current_app
 
 <span class="class"><span class="keyword">class</span> <span class="title">Extension</span><span class="params">(object)</span>:</span>
-    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, app=None, db=None)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, app=None)</span>:</span>
         self._app = app
         <span class="keyword">if</span> app:
             <span class="keyword">return</span> self.init_app(app)
@@ -1024,7 +1031,7 @@ extension_bp = Blueprint(<span class="string">'index'</span>, __name__, url_pref
 
 <span class="class"><span class="keyword">class</span> <span class="title">Extension</span><span class="params">(object)</span>:</span>
     ...
-    <span class="function"><span class="keyword">def</span> <span class="title">init_app</span><span class="params">(self, app)</span>:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">init_app</span><span class="params">(self, app, db)</span>:</span>
         ...
         app.extensions.update({<span class="string">'extension'</span>: self, <span class="string">'db'</span>: db})
         self.init_models()
@@ -1048,6 +1055,21 @@ extension_bp = Blueprint(<span class="string">'index'</span>, __name__, url_pref
 </section>
   </div>
   <div class="slide hidden" id="slide-39">
+    <section class="slide-content"><h3 id="thank-you-">Thank You!</h3>
+<ul>
+<li>Special Thanks to Thinkful for Hosting</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-40">
+    <section class="slide-content"><h3 id="thank-you-">Thank You!</h3>
+<ul>
+<li>Special Thanks to Thinkful for Hosting</li>
+<li>Flask-NYC and Andy Dimberger for organizing</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-41">
     <section class="slide-content"><div class="author">
   <h1 class="name">Erik Taubeneck</h1>
     <h3 class="twitter">
